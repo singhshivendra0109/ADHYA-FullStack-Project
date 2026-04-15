@@ -37,3 +37,5 @@ desktop.ini
 
 # --- Database (Local) ---
 *.sqlite3
+#notebook
+ADHYA_Audit.ipynb

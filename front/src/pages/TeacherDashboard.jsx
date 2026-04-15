@@ -10,6 +10,10 @@ import StatCard from '../components/StatCard';
 import AvailabilityManager from '../components/teacher/AvailabilityManager';
 import api from '../api/api';
 
+const getCurrentMonthYear = () => {
+  return new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+};
+
 const TeacherDashboard = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
@@ -19,12 +23,10 @@ const TeacherDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // MODAL STATES
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showSlotModal, setShowSlotModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  // FORM STATES
   const [formData, setFormData] = useState({
     full_name: '', subject: '', bio: '', experience_years: 0, monthly_rate: 0, city: '', profile_picture: ''
   });
@@ -42,7 +44,7 @@ const TeacherDashboard = () => {
         setProfile(profileRes.data);
         setFormData(profileRes.data);
         const slotsRes = await api.get(`/profiles/availability/${profileRes.data.user_id}`, {
-          params: { month_year: "March 2026" }
+          params: { month_year: getCurrentMonthYear() }
         });
         setAvailability(slotsRes.data);
       }
@@ -76,16 +78,15 @@ const TeacherDashboard = () => {
     }
   };
 
-  // handleAddSlot now works with AvailabilityManager
   const handleAddSlot = async (formattedTimeString) => {
     try {
       const slotPayload = {
-        month_year: 'March 2026',
+        month_year: getCurrentMonthYear(),
         time_slot: formattedTimeString
       };
       await api.post('/profiles/availability', slotPayload);
       alert("Slot successfully added!");
-      fetchDashboardData(); // Refreshes the list automatically
+      fetchDashboardData();
     } catch (err) {
       console.error("Add slot failed:", err);
       alert(err.response?.data?.detail || "Failed to add slot.");
@@ -198,7 +199,6 @@ const TeacherDashboard = () => {
                 <button onClick={() => setShowSlotModal(true)} className="bg-[#1F6666] text-white p-4 rounded-2xl hover:scale-110 active:scale-95 shadow-xl transition-all"><Plus size={24} strokeWidth={3} /></button>
               </div>
               <div className="bg-white rounded-[3rem] border border-emerald-50 p-6 shadow-sm min-h-[150px]">
-
                 <AvailabilityManager
                   slots={availability}
                   onDelete={handleDeleteSlot}
@@ -293,7 +293,6 @@ const TeacherDashboard = () => {
         </div>
       </div>
 
-      {/* MODALS */}
       {selectedStudent && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 backdrop-blur-xl bg-black/60">
           <div className="bg-white w-full max-w-lg rounded-[4rem] shadow-2xl p-10 relative text-left overflow-hidden border border-white/20">
@@ -325,8 +324,12 @@ const TeacherDashboard = () => {
           <div className="bg-white w-full max-w-md rounded-[3rem] shadow-2xl p-10 relative text-[#0F172A]">
             <button onClick={() => setShowSlotModal(false)} className="absolute top-8 right-8 text-gray-400 hover:text-red-500"><X size={28} /></button>
             <h3 className="text-2xl font-black uppercase mb-8">Add <span className="text-[#1F6666]">Session</span></h3>
-            <form onSubmit={handleAddSlot} className="space-y-6">
-              <input required placeholder="e.g. 10:00 AM - 11:30 AM" className="w-full px-6 py-5 rounded-[1.5rem] bg-gray-50 border-2 border-transparent focus:border-emerald-100 outline-none font-bold transition-all" value={slotData.time_slot} onChange={(e) => setSlotData({ ...slotData, time_slot: e.target.value })} />
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handleAddSlot(e.target.time_slot.value);
+              setShowSlotModal(false);
+            }} className="space-y-6">
+              <input name="time_slot" required placeholder="e.g. 10:00 AM - 11:30 AM" className="w-full px-6 py-5 rounded-[1.5rem] bg-gray-50 border-2 border-transparent focus:border-emerald-100 outline-none font-bold transition-all" />
               <button type="submit" className="w-full bg-[#0F172A] text-white py-5 rounded-[1.5rem] font-black uppercase text-xs hover:bg-[#1F6666] transition-all shadow-xl shadow-teal-900/10">Confirm Slot</button>
             </form>
           </div>

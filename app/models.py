@@ -17,7 +17,6 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     profile = relationship("TeacherProfile", back_populates="owner", uselist=False)
-    # Relationship for Student Profile
     student_profile = relationship("StudentProfile", back_populates="owner", uselist=False)
 
 class TeacherProfile(Base):
@@ -25,7 +24,7 @@ class TeacherProfile(Base):
     __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True)
     
     full_name = Column(String, nullable=False)
     subject = Column(String, nullable=False) 
@@ -42,7 +41,7 @@ class StudentProfile(Base):
     __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True)
     
     full_name = Column(String, nullable=False)
     grade_class = Column(String, nullable=False) 
@@ -55,7 +54,7 @@ class TeacherAvailability(Base):
     __tablename__ = "teacher_availability"
 
     id = Column(Integer, primary_key=True, index=True)
-    teacher_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    teacher_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)
     
     month_year = Column(String, nullable=False) 
     time_slot = Column(String, nullable=False)  
@@ -65,30 +64,26 @@ class Booking(Base):
     __tablename__ = "bookings"
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
-    teacher_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    student_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    teacher_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)
     
     subject = Column(String, nullable=False)
     month_year = Column(String, nullable=False) 
-    time_slot = Column(String, nullable=False)  
+    time_slot = Column(String, nullable=False)   
     status = Column(String, default="pending") 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-# NEW CHAT MODELS
 
 class Conversation(Base):
     __tablename__ = "conversations"
     __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
-    tutor_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    student_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    tutor_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)
     
-    # status values: 'pending', 'active', 'blocked'
     status = Column(String, default="pending") 
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Relationships
     messages = relationship("ChatMessage", back_populates="conversation", cascade="all, delete-orphan")
 
 class ChatMessage(Base):
@@ -96,22 +91,21 @@ class ChatMessage(Base):
     __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
-    conversation_id = Column(Integer, ForeignKey("conversations.id", ondelete="CASCADE"))
-    sender_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    conversation_id = Column(Integer, ForeignKey("conversations.id", ondelete="CASCADE"), index=True)
+    sender_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)
     
     content = Column(Text, nullable=False) 
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     conversation = relationship("Conversation", back_populates="messages")
 
-#  OTHER MODELS 
 class Review(Base):
     __tablename__ = "reviews"
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    teacher_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    booking_id = Column(Integer, ForeignKey("bookings.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    teacher_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    booking_id = Column(Integer, ForeignKey("bookings.id", ondelete="CASCADE"), nullable=False, index=True)
     
     rating = Column(Integer, nullable=False)
     comment = Column(String, nullable=True)
@@ -128,7 +122,7 @@ class Achievement(Base):
     score = Column(String, nullable=False)
     subject = Column(String, nullable=False)
     detail = Column(String, nullable=True)
-    teacher_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    teacher_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     color_theme = Column(String, default="bg-blue-50") 
     is_featured = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

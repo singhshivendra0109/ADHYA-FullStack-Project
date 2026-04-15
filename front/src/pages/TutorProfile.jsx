@@ -3,6 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/api';
 import { Clock, ArrowLeft, Star, MapPin, Award, User, ShieldCheck, MessageCircle, Ban } from 'lucide-react';
 
+const getCurrentMonthYear = () => {
+  return new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+};
+
 const TutorProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -20,7 +24,7 @@ const TutorProfile = () => {
         setTutor(profileData);
 
         const slotsRes = await api.get(`/profiles/availability/${profileData.user_id}`, {
-          params: { month_year: "March 2026" }
+          params: { month_year: getCurrentMonthYear() }
         });
         setSlots(slotsRes.data);
 
@@ -76,16 +80,13 @@ const TutorProfile = () => {
     }
   };
 
-
   const getSlotStatus = (slot) => {
-    // 1. Pehle check karo kya YE slot CURRENT student ne book kiya hai
     const myBooking = userBookings.find(b => b.time_slot === slot.time_slot && b.teacher_id === tutor.user_id);
 
     if (myBooking) {
       return { type: 'mine', status: myBooking.status, id: myBooking.id };
     }
 
-    // 2. Agar current user ne nahi kiya, toh check karo kya backend bol raha hai ki ye booked hai (kisi aur ne)
     if (slot.is_booked) {
       return { type: 'others', status: 'taken' };
     }
@@ -112,7 +113,6 @@ const TutorProfile = () => {
   return (
     <div className="min-h-screen bg-[#fcfefd] pb-24 text-left font-sans">
       <div className="max-w-7xl mx-auto px-6 pt-12">
-
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 font-black text-[#0F172A] uppercase text-[10px] tracking-widest mb-12 hover:text-[#1F6666] transition-all group"
@@ -121,7 +121,6 @@ const TutorProfile = () => {
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-
           <div className="lg:col-span-8">
             <h1 className="text-5xl md:text-7xl font-black text-[#0F172A] leading-[1.1] mb-8 uppercase tracking-tighter">
               {tutor.subject} Mastery <br /> Starts <span className="text-[#1F6666]">Here</span>.
@@ -157,14 +156,11 @@ const TutorProfile = () => {
                         <p className="text-[#0F172A] font-black text-xl uppercase tracking-tighter">{slot.time_slot}</p>
                       </div>
                       <div className="flex flex-col items-end">
-
-                        {/*  CASE 1: Booked by someone else */}
                         {info?.type === 'others' ? (
                           <div className="bg-gray-50 text-gray-400 px-6 py-4 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest border border-gray-100 flex items-center gap-2 cursor-not-allowed">
                             <Ban size={14} /> Full / Taken
                           </div>
                         ) : !info ? (
-                          /*  CASE 2: Free Slot */
                           <button
                             onClick={() => handleBooking(slot)}
                             className="bg-[#1F6666] text-white px-8 py-4 rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest hover:bg-[#0F172A] transition-all shadow-lg active:scale-95"
@@ -172,12 +168,10 @@ const TutorProfile = () => {
                             Book Now
                           </button>
                         ) : info.status === 'accepted' ? (
-                          /*  CASE 3: Current User's Booking Accepted */
                           <div className="bg-emerald-50 text-emerald-600 px-8 py-4 rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest border border-emerald-100 flex items-center gap-2">
                             <ShieldCheck size={16} /> Enrolled
                           </div>
                         ) : (
-                          /*  CASE 4: Current User's Booking Pending */
                           <div className="flex flex-col gap-3 items-center">
                             <span className="text-orange-500 font-black text-[10px] uppercase tracking-widest px-4 py-1 bg-orange-50 rounded-full">Requested</span>
                             <button

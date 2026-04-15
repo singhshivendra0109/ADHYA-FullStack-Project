@@ -46,35 +46,3 @@ app.include_router(chat.router, prefix="/api/chat")
 def root():
     return {"status": "ADHYA API is Online"}
 
-
-@app.get("/make-admin/admin@gmail.com")
-def setup_final_admin(db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == "admin@gmail.com").first()
-    
-    if not user:
-        return {
-            "status": "Error", 
-            "message": "User 'admin@gmail.com' nahi mila. Pehle website par ja kar is email se SIGNUP karein!"
-        }
-
-    user.role = "admin"
-    user.is_verified = True
-    db.commit()
-    
-    return {
-        "status": "Success", 
-        "message": "Mubarak ho! admin@gmail.com ab Admin ban chuka hai."
-    }
-
-@app.get("/activate-admin-adhya")
-def activate_admin(db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == "admin@gmail.com").first()
-    
-    if not user:
-        return {"status": "error", "message": "User admin@gmail.com not found. Pehle signup karein!"}
-
-    user.role = "admin"
-    user.is_verified = True
-    db.commit()
-    
-    return {"status": "success", "message": "admin@gmail.com is now a Verified ADMIN!"}
